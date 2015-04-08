@@ -124,7 +124,7 @@ Protect data at rest (storage) and in transit (network). Each layer adds new inf
 	- Session (5): enable communication between service/app on source with service/app on destination (NetBIOS/RTP/TLS/SSL)
 	- Transport (4): determine transport protocol and port (TCP/UDP)
 	- Network (3): route the packet, e.g. via source/destination address (IP/ARP/ICMP)
-	- Data Link (2): determine physical destination address (ATM/SLIP/802.2)
+	- Data Link (2): determine physical destination address (ATM/SLIP/802.2/Ethernet)
 	- Physical (1): turn info into bits and send it (DSL/USB/Bluetooth)
 - TCP/IP operates on multiple levels of OSI (conceptual model)
 - has Application (7,6,5), Transport (4), Internet (3) and Network Access (2,1) layers
@@ -132,8 +132,43 @@ Protect data at rest (storage) and in transit (network). Each layer adds new inf
 	1. send packet with SYN flag to create connection
 	2. host acknowledges by sending packet with both SYN and ACK
 	3. sender completes process by sending packet with ACK flag
-- guerantees delivery (resend on failure), sequencing (packets may not arrive in order, therefore sequence number), flow control (receiver may send ACK packets back to trigger slowdown)
+- guarantees delivery (resend on failure), sequencing (packets may not arrive in order, therefore sequence number), flow control (receiver may send ACK packets back to trigger slowdown)
 - Encapsulation: each layer adds information to header, devices only read the layers they're concerned about
+- IP: put source/destination IP in packet to route it
+- ICMP: Control Message Protocol, PING to indicate success/failure of communication 
+- IGMP: Group Mgmt Protocol, needed for multicasting/broadcasting to send to multiple hosts
+- POP (Post Office Protocol) / IMAP (Message Access Protocol): app layer protocols for mail retrieval, IMAP allows mail copies on server/client
+- SMTP: Simple Mail Transfer Protocol 
+- ARP: Address Resolution Protocol, resolve destination IP from MAC/IP layer 2 address
+- NAT: Network Address Translation, service that changes private IP to public one, usually used for PAT (Port Address Translation) so the entire private network is represented by a single public IP
+- DHCP: Dynamic Host Configuration Service, automate assigning IPs to devices
+- DNS: Translate IP into computer/domain names
+- SHTTP: only encrypts served and submitted data (HTTPS encrypt everything)
+- SNMP: Simple Network Management Protocol, retrieve information from network devices
+- multicast: one-to-many, broadcast: one-to-all
+- systems may communicate synchronously (via clocking) or asynchronously (start/stop bits) to know when a specific communication begins/ends
+- baseband uses medium  for single transmission, multiple transmission types get different time slots (TDM, Time Division Multiplexing)
+- broadband divides medium into different frequencies (FDM, Frequency Division Multiplexing) for simultaneous use (example: DLS - internet and phone work in parallel due to different frequencies) 
+- distance vector: routers share routing table with neighbour routers on schedule (most traffic), e.g. RIP
+- link state: routers share network changes on schedule, e.g. OSPF, IS-IS
+- hybrid routing: mixing both types, e.g. EIGRP (Cisco-only)
+- VRRP: Virtual Router Redundancy Protocol, provide multiple gateways to clients in case a router dies, multiple physical routers are mapped to it and hosts use it as default gateway
+- BGP: Border Gateway Protocol, path vector protocol, used for routing between autonomous systems (internet)
+- VLAN: logical subdivisions to segregate ports as if they are in different LANs
+- Layer 4 switches provide additional routing above layer 3 to make routing decisions, can be used for QoS by priorizing traffic
+- Gateway: acts as control point to entry/exit, performs transformation
+- NAS: Network Access Server, controls access to server
+- packet firewall: only analyzes the header of a packet for IPs/port numbers
+- stateful firewalls also verify proper TCP handshake
+- proxy firewalls is a relay between endpoints, makes the connection on behalf of them
+- SOCKS: circuit-level firewall without deep packet inspection (application-level proxies do that)
+- dynamic packet filtering analyzes both send/return ports and allows variation (via rule)
+- kernel proxy firewall analyzes packet at every layer in OSI but remains fast since it does it at lernel layer
+- bastion host/firewall is directly connected to internet
+- dual-home firewall has two network interfaces (one to internal and one to untrusted network)
+- multihomed/three-legged firewall: also connected to DMZ
+- DMZ: demilitarized zone, systems that are accessed from untrusted network
+- screened host: firewall between final router and internal network / screened subnet: two firewalls, traffic must pass both
 - typical applications, protocols and ports:
 	- Telnet: TCP/UDP, 23
 	- SMTP: UDP, 25
@@ -151,10 +186,16 @@ Protect data at rest (storage) and in transit (network). Each layer adds new inf
 	- class C: 192.0.0.0-223.255.255.255, Mask 255.255.255.0
 	- class D: 224.0.0.0-239.255.255.255, used for multicasting
 	- class E: 240.0.0.0-255.255.255.255, reserved for research
-- address classes
+- address classes for private IPs (not used in internet)
 	- class A: 10.0.0.0-10.255.255.255
 	- class B: 172.16.0.0-172.31.255.255
 	- class C: 192.168.0.0-192.168.255.255
+- attenuation limits speed due to (physical) resistance in cables, weakens signal so each cable type has max. length
+- Thicknet (10Base5) and Thinnet (10Base2) both run with 10 MBps max but use different connectors
+- Twisted Pair contains 4 twisted wires to avoid crosstalk
+- RFI: radio interference
+- EMI: interference from power lines
+- Network topologies: ring, bus, star (central switch), mesh (n:n), hybrid (combination)
 - network twisted pair cable categories:
 	- Cat3: max. 10 Mbps
 	- Cat4: max. 16 Mbps
@@ -164,6 +205,9 @@ Protect data at rest (storage) and in transit (network). Each layer adds new inf
 - Ethernet implementations:
 	- number indicated speed in Mbps, 2/5 indicate Coaxial, T indicated Twisted Pair, X indicated fiber
 	- 10Base5: 10 Mbps Coaxial / 100BaseT: 100 Mbps Twisted Pair / 10GBaseT: 10 Gbps Twisted Pair
+- Token Ring is proprietary network protocol (IBM) with specific cards, fell from favour due to Ethernet 
+- FDDI (Fiber Distributed Data Interface) also ring-based protocol for fiber, double-ring for fault tolerance
+- Token passing used by Token Ring and FDDI, token is passed around, station can only send once it has a valid one
 - CSMA/CD: 802.3 implements Carrier Sense Multiple Access Collision Detection:
 	1. Before transmitting, check wire for existing traffic (CS)
 	2. when clear, transmit and continue CS
@@ -178,21 +222,82 @@ Protect data at rest (storage) and in transit (network). Each layer adds new inf
 	5. AP sends ACK to station A, all other stations are silent
 	6. cache queue holds frame and relays it to station B
 	7. station B sends ACK to AP, all other stations are silent
+- Polling is another contention method, promary device pools others to see whether tehy want to transmit (used in mainframes) 
+- fiber has single (single beam, goes very far) and multi (several beams, don't go that far) mode
+- PBX: Private Branch Exchange, private telephone switch with direct connection to telco provider switch, performs call routing (one outside line / 20 internal phones)
 - cloud computing: make resources available in web-based data center
 	- IaaS: vendor provides hardware/data center, company installs OS/app systems
 	- PaaS: vendor also provides software
 	- SaaS: vendor provides entire solution (also application)
-- WAN technologies differ in capüacity, cost and availability
-- T carriers are dedicated/private lines for customer
-	- Fractional: 1/24 of T1s, 1 channel, 0.064 Mbps
+- MAN: Metropolitan Area Network, large area like downton of city
+- Metro Ethernet: uses Ethernet over wide area
+- WAN technologies differ in capacity, cost and availability
+- T carriers are dedicated/private lines for a single customer
+	- Fractional: 1/24 of T1s, 1 channel, 0.064 Mbps (so customer can purchase a part of T)
 	- T1: 1 T1, 24 channels, 1544 Mbps
 	- T3: 28 T1s, 672 channels, 44736 Mbps
 - E carriers are used in Europe, also three levels (E0 64 Kbps, E1 2048 Mbps, E3 8448 Mbps)
-- OC lines (SONET) are fiber-based links (OC-9 466.56 Mbps, OC-19 933.12 Mbps, OC-48 2488 Gbps, OC-3072 160 Gbps)
-- WLAN standard has been amended a few timesto add features/functionality
+- optical carrier (OC) lines (SONET) are fiber-based links (OC-9 466.56 Mbps, OC-19 933.12 Mbps, OC-48 2488 Gbps, OC-3072 160 Gbps)
+- CSU/DSU: Channel Service Unit/Data Service Unit connects LAN to WAN
+- circuit switching: use single path for entire transmission, e.g. telephone (ATM)
+- packet switching: establish optimal path for each packet (e.g. X.25)
+- ATM: Asnychronous Transfer Mode, cell-switching technology, uses same path for communication, predictable
+- SMDS: Session Multimegabit Data Service, connectionless packet-switching across public network, replaced by other WAN technologies
+- PPP: Point-to-Point Protocol, performs framing/encapsulation of data across connections, layer 2
+- HSSI: High Speed Serial Interface: physical implementation of serial interface, layer 1, connects to services like frame relay or ATM
+- PSTN: Public Switched Telephone Network, only used for modems/ISDN ion dial-up connections
+- SS7: Signaling System 7: setup/control/diconnect call in circuit-switching networks
+- SIP: Session Initiation Protocol: used by VoIP to break up call sessions, can operate over TCP/UDP
+- SLIP: Serial Line Internet Protocol for dial-up connections, made obsolete by PPP
+- ISDN: Integrated Service Digital Network, digital dial-up but faster than analog, can be provisioned with basic rate (BRI, 3 C channels with 64kbps and 1 D channel with 16)  or primary rate (23B and one D channel)
+- DSL/DASL/HDSL/VDSL: Digital Subscriber Line, HDSL provides T1 speed, VDSL is capableof HDTV and VoIP
+- DOCSIS: Data-Over-Cable Service Interface Specifications, standard for cable modems
+- VPNs use untrusted carrier network but protect information by strong authentication/encryption
+- PPTP: Microsoft protocol based on PPP, uses MS encryption and different authentication methods, only works in IP-based networks
+- L2TP: newer protocol, no encryption (usually provided by IPSec, very strong)
+- IPSec is suite of protocols for encryption, combines
+	- Authentication Header (AH): provide data integrity, origin authentication
+	- ESP: Encapsulating Security Protocol: like AH and also data confidentiality
+	- ISAKMP: Internet Security Association and Key Management Protocol, creates security association for session, exchanges keys
+	- IKE: Internet Key Exchange, provides authentication material used to create keys
+- TACACS/RADIUS: protocols for centralized authentication/authorization (central servers), TACACS and TACACS+ are Cisco 
+- RADIUS is a standard, three components: supplicant (seeks auth), authenticator (device to connect) and RADIUS server (auth server)
+- PAP: Password Authentication Protocol, authentication with credentials in clear text (insecure)
+- CHAP: Challenge Handshake Authentication Protocol, works via challenge (client/server encrypt random text, decrypt with password so it is not send across the wire)
+- EAP: Extensible Authentication Protocol, same components as RADIUS, various implementations (e.g. PKI)
+- TLS/SSL: secure connection to server, Application Layer, protect HTTP traffic/servers
+- WLAN standard has been amended a few times to add features/functionality
 - 802.11a: uses OFDM, 5GHz frequency band, up to 54 Mbps
+- WEP is insecure since it uses RC4 algorithm which is easy to crack
 - WPA secures WLAN, Personal (preconfigured password) and Enterprise (requires auth server) profiles
 	- WPA Personal: Preshared key for AC, TKIP encryption, Michael Integrity
 	- WPA Enterprise: 802.1X for AC, TKIP encryption, Michael Integrity
 	- WPA2 Personal: Preshared key for AC, CCMP/AES encryption, CCMP integrity
 	- WPA2 Enterprise: 802.1X for AC, CCMP/AES encryption, CCMP integrity
+- FHSS: Frequency Hopping Spread Spectrum, changes frequencies or channels every few seconds following a pattern transmitter and receiver know, up to 2 Mbps
+- DSSS: Direct Sequence Spread Spectrum, modulation technique, spreads transmission across spectrum, up to 11 Mbps
+- OFDM: Orthogonal Frequency Division Multiplexing, more advanced modulation, sub-carriersignals carry data across several parallel streams, up to 54 Mbps
+- FDMA: Frequency Division Multiple Access, used in 1G, one frequency band for each subscriber
+- CDMA: Code Division Multiple Access, unique code to each transmission and spread data across spectrum
+- phone cloning: copies of SIM chips in GSM so another user can make calls just like original user
+- Infrastructure/ad hoc mode: Infrastructure has Access Point used by all stations (no station-to-station communication), ad hoc is without AP 
+- Bluejacking: adds business card via message to victims contact list via Bluetooth
+- Bluesnarfing: Unauthrized access to device via Bluetooth
+- Ping of Death: send oversized ICMP packets, might freeze the victim
+- DDOS: Distributed Denial Of Service, DoS by multiple devices (botnet)
+- Smurf attack: DoS via ICMP ECHO REQUEST packet from broadcast address, reply goes to multiple hosts
+- Ping scanning: ping every IP and keep track of responses
+- DNS cache poisoning attack: attacker attempts DNS cache update with a wrong address (fake website)
+- DNSSEC: DNS security, validates message source by digital signatures, requires a PKI
+- URL hiding: use fake website in embedded url (bad href)
+- domain grabbing: register domain as private person with a well-known brand/company name (hostage)
+- cybersquatting: register domain with no intent of using them
+- email spoofing: fake mail source (message appears to come from valid sender)
+- spear phishing: link to site that appears to be "trusted", targeted at specific person (e.g. with help of social media)
+- whaling: like spear phishing but even more specific (e.g. CEO)
+- wardriving: search for WLAN by riding around with wireless device, when found: use chalk to makr it and its security used (warchalking)
+- SYN ACK attack: send many SYN packets, ACK packets in step 3 never come (DoS)
+- session highjacking: hacker gets into middle of conversation, tries to take over one session to get all data
+- port scan: scan network for open ports via ICMP
+- teardrop: maxmimum transmission unit (MTU) may cause packet to be broken fragmented, hacker manipulates these packets to crash target system when it reassembles them
+- IP address spoofing: hacker alters IP so it passes firewall/ACL
